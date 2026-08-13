@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Absensi Profesional</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+
+  <header class="bg-slate-800/95 backdrop-blur border-b border-slate-700 p-4 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3 w-full md:w-1/3 justify-center md:justify-start">
+        <img id="company-logo" src="https://picsum.photos/50" alt="Logo Perusahaan" class="h-12 w-auto object-contain bg-white px-1 py-0.5 rounded shadow-sm shrink-0">
+        <div class="text-left">
+          <h2 id="company-name" class="text-sm md:text-base font-bold text-blue-400 tracking-wide uppercase leading-tight">PT KARYA ADI KENCANA</h2>
+          <h3 id="title" class="text-[10px] md:text-xs font-medium text-red-300 tracking-wider uppercase">Ready Mix & Precast</h3>
+        </div>
+      </div>
+
+      <div class="text-center w-full md:w-1/3">
+        <h1 class="text-sm md:text-base uppercase tracking-widest text-slate-200 font-extrabold">SISTEM ABSENSI KARYAWAN</h1>
+        <p class="text-[10px] text-slate-400 tracking-wider uppercase mt-0.5">By: Wira Hutama Digital</p>
+      </div>
+
+      <div class="flex flex-col items-center md:items-end w-full md:w-1/3 border-t md:border-t-0 border-slate-700/60 pt-2 md:pt-0">
+        <div id="realtime-clock" class="text-xl md:text-2xl font-black text-white tracking-wider">00:00:00</div>
+        <div id="realtime-date" class="text-xs text-slate-400 mt-0.5">Memuat tanggal...</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md w-full mx-auto p-4 flex-1 flex flex-col justify-center">
+
+    <div id="login-section" class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl transition-all duration-300">
+      <div class="text-center mb-6">
+        <div class="inline-block p-3 bg-emerald-500/10 text-emerald-400 rounded-full mb-2">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.115 6.848l.054-.09A13.916 13.916 0 0016 11a4 4 0 00-8 0c0 1.017.07 2.019.203 3m4.897 6.848l-.054-.09A13.916 13.916 0 0012 21z"/></svg>
+        </div>
+        <h2 class="text-xl font-bold tracking-tight">Masuk Karyawan</h2>
+        <p class="text-xs text-slate-400 mt-1">Masukkan User ID & PIN untuk mulai absen</p>
+      </div>
+      
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">User ID</label>
+          <input type="text" id="userId" placeholder="Contoh: EMP001" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">PIN Rahasia</label>
+          <input type="password" id="pin" placeholder="••••" maxlength="6" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 transition text-center tracking-widest text-lg">
+        </div>
+        <button onclick="handleLogin()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-emerald-600/20 transition-all duration-200 active:scale-95">
+          Masuk Dashboard
+        </button>
+      </div>
+    </div>
+
+    <div id="dashboard-section" class="hidden space-y-4">
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 flex justify-between items-center shadow-lg">
+        <div>
+          <span class="text-xs text-slate-400">Selamat Datang,</span>
+          <h3 id="user-display" class="font-bold text-lg text-emerald-400"></h3>
+        </div>
+        <button onclick="handleLogout()" class="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/20 px-3 py-1.5 rounded-lg hover:bg-rose-500/20 transition">Keluar</button>
+      </div>
+
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg text-center space-y-3">
+        <div class="w-full bg-slate-900 rounded-xl border border-slate-700 p-3 text-left">
+          <label class="block text-xs font-medium text-slate-300 mb-1">Catatan Keterangan (Opsional)</label>
+          <input type="text" id="absen-catatan" placeholder="Contoh: Datang lebih awal / Lembur proyek" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <input type="file" id="file-berangkat" accept="image/*" capture="user" class="hidden" onchange="processImage(event, 'berangkat')">
+          <button id="btn-berangkat" onclick="document.getElementById('file-berangkat').click()" class="bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+            📸 Foto Berangkat
+          </button>
+
+          <input type="file" id="file-pulang" accept="image/*" capture="user" class="hidden" onchange="processImage(event, 'pulang')">
+          <button id="btn-pulang" onclick="document.getElementById('file-pulang').click()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center text-xs disabled:opacity-50 disabled:cursor-not-allowed">
+            📸 Foto Pulang
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg">
+        <h4 class="text-sm font-semibold mb-3 text-slate-300 flex items-center justify-between">
+          <span>Riwayat & Rekap Lembur</span>
+          <button onclick="loadHistory()" class="text-xs text-emerald-400 hover:underline">Muat Ulang</button>
+        </h4>
+
+        <!-- KOTAK REKAP BULANAN -->
+        <div class="bg-slate-900 border border-slate-700 p-3 rounded-xl mb-3 grid grid-cols-2 gap-2 text-center">
+          <div class="bg-slate-800 p-2 rounded-lg border border-slate-700">
+            <span class="text-[10px] text-slate-400 block uppercase">Total Jam Kerja (Bulan Ini)</span>
+            <span id="rekap-durasi" class="text-sm font-bold text-emerald-400">0 Jam</span>
+          </div>
+          <div class="bg-slate-800 p-2 rounded-lg border border-slate-700">
+            <span class="text-[10px] text-slate-400 block uppercase">Total Lembur (Bulan Ini)</span>
+            <span id="rekap-lembur" class="text-sm font-bold text-amber-400">0 Jam</span>
+          </div>
+        </div>
+
+        <div id="history-list" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs">
+          <p class="text-slate-500 text-center py-4">Memuat riwayat...</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="text-center text-xs text-slate-500 py-4 border-t border-slate-800">
+    Powered by Wira Agung; 2026
+  </footer>
+
+  <script>
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw.../exec"; 
+
+    const CONFIG_DRIVE_LOGO_ID = "12uM-VAyXiBiekN6iEAeOG5KWe4SwHs8O"; 
+    const logoElement = document.getElementById('company-logo');
+    if (CONFIG_DRIVE_LOGO_ID) {
+      logoElement.src = "https://lh3.googleusercontent.com/d/" + CONFIG_DRIVE_LOGO_ID;
+      logoElement.onerror = function() {
+        logoElement.src = "https://picsum.photos/50";
+      };
+    }
+
+    let currentUser = null;
+    let currentPin = null;
+
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('realtime-clock').innerText = now.toLocaleTimeString('id-ID');
+      document.getElementById('realtime-date').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }, 1000);
+
+    window.onload = function() {
+      const savedUser = localStorage.getItem('abs_user');
+      const savedPin = localStorage.getItem('abs_pin');
+      
+      if (savedUser && savedPin) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('dashboard-section').classList.remove('hidden');
+        document.getElementById('userId').value = savedUser;
+        document.getElementById('pin').value = savedPin;
+        handleLogin(true);
+      } else {
+        document.getElementById('login-section').classList.remove('hidden');
+        document.getElementById('dashboard-section').classList.add('hidden');
+      }
+    };
+
+    // Fungsi Pembantu Fetch API ke Google Apps Script
+    async function callGasApi(payload) {
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        return await response.json();
+      } catch (err) {
+        throw new Error("Koneksi ke server gagal: " + err.message);
+      }
+    }
+
+    async function handleLogin(isAuto = false) {
+      const userId = document.getElementById('userId').value.trim();
+      const pin = document.getElementById('pin').value.trim();
+      const targetSheetId = "1kjGOPVad6-wVvwin8fYIIpwEzeLqbdZ6BmZbJRildh0"; 
+
+      if (!userId || !pin) {
+        if (!isAuto) Swal.fire('Peringatan', 'User ID dan PIN wajib diisi!', 'warning');
+        return;
+      }
+
+      Swal.showLoading();
+      try {
+        const res = await callGasApi({
+          action: "masterConfig",
+          userId: userId,
+          pin: pin,
+          sheetId: targetSheetId
+        });
+
+        Swal.close();
+        if (res.status === 'success') {
+          currentUser = userId;
+          currentPin = pin;
+          localStorage.setItem('abs_user', userId);
+          localStorage.setItem('abs_pin', pin);
+          localStorage.setItem('abs_sheet', targetSheetId);
+
+          document.getElementById('login-section').classList.add('hidden');
+          document.getElementById('dashboard-section').classList.remove('hidden');
+          document.getElementById('user-display').innerText = userId;
+
+          loadHistory();
+        } else {
+          localStorage.removeItem('abs_user');
+          localStorage.removeItem('abs_pin');
+          if (!isAuto) Swal.fire('Gagal Masuk', res.message, 'error');
+        }
+      } catch (err) {
+        Swal.close();
+        if (!isAuto) Swal.fire('Error Sistem', err.message, 'error');
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('abs_user');
+      localStorage.removeItem('abs_pin');
+      currentUser = null;
+      currentPin = null;
+      document.getElementById('dashboard-section').classList.add('hidden');
+      document.getElementById('login-section').classList.remove('hidden');
+      document.getElementById('userId').value = '';
+      document.getElementById('pin').value = '';
+    }
+
+    function processImage(event, type) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        submitAbsenData(type, e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function submitAbsenData(type, imageBase64) {
+      const sheetId = localStorage.getItem('abs_sheet');
+      const catatan = document.getElementById('absen-catatan').value.trim();
+
+      Swal.fire({
+        title: 'Mengirim Absen...',
+        text: 'Mohon tunggu sebentar',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      try {
+        const res = await callGasApi({
+          action: "submitAbsen",
+          userId: currentUser,
+          pin: currentPin,
+          type: type,
+          image: imageBase64,
+          catatan: catatan,
+          sheetId: sheetId
+        });
+
+        if (res.status === 'success') {
+          Swal.fire('Berhasil!', res.message, 'success');
+          document.getElementById('absen-catatan').value = '';
+          loadHistory();
+        } else {
+          Swal.fire('Gagal', res.message, 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', err.message, 'error');
+      }
+    }
+
+    async function loadHistory() {
+      const sheetId = localStorage.getItem('abs_sheet');
+      
+      if (!currentUser) currentUser = localStorage.getItem('abs_user');
+      if (!currentPin) currentPin = localStorage.getItem('abs_pin');
+
+      if (!currentUser || !sheetId) return;
+
+      try {
+        // 1. Ambil Rekap Bulanan
+        const summary = await callGasApi({
+          action: "monthlySummary",
+          userId: currentUser,
+          sheetId: sheetId
+        });
+
+        if (summary) {
+          document.getElementById('rekap-durasi').innerText = (summary.totalDurasi || 0) + " Jam";
+          document.getElementById('rekap-lembur').innerText = (summary.totalLembur || 0) + " Jam";
+        }
+
+        // 2. Ambil Riwayat Harian
+        const data = await callGasApi({
+          action: "getHistory",
+          userId: currentUser,
+          pin: currentPin,
+          sheetId: sheetId
+        });
+
+        const container = document.getElementById('history-list');
+        const btnBerangkat = document.getElementById('btn-berangkat');
+        const btnPulang = document.getElementById('btn-pulang');
+
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+        let hasAbsenHariIni = false;
+        let hasPulangHariIni = false;
+
+        if (Array.isArray(data) && data.length > 0) {
+          const todayData = data.find(row => row.tanggal === todayStr);
+          if (todayData) {
+            if (todayData.berangkat && todayData.berangkat !== '') hasAbsenHariIni = true;
+            if (todayData.pulang && todayData.pulang !== '') hasPulangHariIni = true;
+          }
+        }
+
+        if (hasAbsenHariIni) {
+          btnBerangkat.disabled = true;
+          btnBerangkat.innerText = "✅ Sudah Absen Berangkat";
+        } else {
+          btnBerangkat.disabled = false;
+          btnBerangkat.innerText = "📸 Foto Berangkat";
+        }
+
+        if (hasPulangHariIni) {
+          btnPulang.disabled = true;
+          btnPulang.innerText = "✅ Sudah Absen Pulang";
+        } else {
+          btnPulang.disabled = false;
+          btnPulang.innerText = "📸 Foto Pulang";
+        }
+
+        if (!Array.isArray(data) || data.length === 0) {
+          container.innerHTML = `<p class="text-slate-500 text-center py-4">Belum ada riwayat absen.</p>`;
+          return;
+        }
+        
+        let html = '';
+        data.forEach(row => {
+          html += `
+            <div class="bg-slate-900 border border-slate-700 p-2.5 rounded-xl flex justify-between items-center mb-2">
+              <div>
+                <div class="font-bold text-emerald-400">${row.tanggal}</div>
+                <div class="text-slate-400">Masuk: ${row.berangkat || '-'} | Pulang: ${row.pulang || '-'}</div>
+                ${row.catatanBerangkat && row.catatanBerangkat !== '-' ? `<div class="text-[10px] text-slate-400 italic">Catatan Masuk: ${row.catatanBerangkat}</div>` : ''}
+                ${row.catatanPulang && row.catatanPulang !== '-' ? `<div class="text-[10px] text-slate-400 italic">Catatan Pulang: ${row.catatanPulang}</div>` : ''}
+                <div class="text-[10px] text-slate-500">Durasi: ${row.durasi || 0} Jam | Lembur: <span class="text-amber-400 font-bold">${row.lembur || 0} Jam</span></div>
+              </div>
+              <div class="flex space-x-1">
+                ${row.fotoBerangkat ? `<a href="${row.fotoBerangkat}" target="_blank" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-[10px] text-blue-400 border border-slate-700">Masuk</a>` : ''}
+                ${row.fotoPulang ? `<a href="${row.fotoPulang}" target="_blank" class="bg-slate-800 hover:bg-slate-700 px-2 py-1 rounded text-[10px] text-indigo-400 border border-slate-700">Pulang</a>` : ''}
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+
+      } catch (err) {
+        console.error("Gagal memuat riwayat:", err);
+      }
+    }
+  </script>
+</body>
+</html>
